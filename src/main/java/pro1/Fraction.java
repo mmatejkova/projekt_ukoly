@@ -1,95 +1,65 @@
 package pro1;
 
-public class Fraction
-{
-    //deklarace proměnných ve zlomku
-    private int numerator;  //čitatel
-    private int denominator;  //jmenovatel
+import java.util.regex.Pattern;
 
-    //konstruktor pro Fraction
-    private Fraction(int numerator, int denominator)
-    {
-        this.numerator = numerator;
-        this.denominator = denominator;
-        simplify();  //zjednoduší zlomek při vytvoření, pomocí gcd
+public class Fraction extends Number {
+    private long n;  // čitatel
+    private long d;  // jmenovatel
+
+    public Fraction(long n, long d) {
+        long gcd = Utils.gcd(d, n);
+        this.n = n / gcd;
+        this.d = d / gcd;
     }
 
-    //zpracování zadaného řetězce
-    public static Fraction parse(String input) throws IllegalArgumentException //přijímá řetězec
-    {
-        String[] parts = input.split("\\+"); //rozdělí řetězec na části = parts (k sčítání zlomků)
-        if (parts.length > 1)
-        {
-            //spočítá součet zlomků
-            Fraction fraction1 = parseFraction(parts[0].trim());
-            Fraction fraction2 = parseFraction(parts[1].trim());
-            return addFractions(fraction1, fraction2);
-        }
-        else
-        {
-            //pokud napíšu jeden zlomek
-            return parseFraction(input);
-        }
+    public Fraction add(Fraction other) {
+        return new Fraction(
+                n * other.d + other.n * d,
+                d * other.d);
     }
 
-    //zpracování samotného zlomku
-    private static Fraction parseFraction(String input)
-    {
-        String[] parts = input.split("/");
-        if (parts.length == 2)
-        {
-            try
-            {
-                int numerator = Integer.parseInt(parts[0].trim());
-                int denominator = Integer.parseInt(parts[1].trim());
-                if (denominator == 0) {
-                    throw new IllegalArgumentException("Dělitel nemůže být nula.");
-                }
-                return new Fraction(numerator, denominator);
+    public static Fraction parse(String s) {
+        s = s.replace(" ", "");
+        String[] split = s.split(Pattern.quote("+"));
+        Fraction sum = new Fraction(0, 1);
+        for (String part : split) {
+            Fraction partFraction;
+            if (part.contains("%")) {
+                partFraction = new Fraction(
+                        Long.parseLong(part.replace("%", "")),
+                        100);
+            } else {
+                String[] split2 = part.split("/");
+                partFraction = new Fraction(
+                        Long.parseLong(split2[0]),
+                        Long.parseLong(split2[1]));
             }
-            catch (NumberFormatException e)
-            {
-                throw new IllegalArgumentException("Neplatný formát zlomku.");
-            }
+            sum = sum.add(partFraction);
         }
-        else
-        {
-            throw new IllegalArgumentException("Neplatný formát zlomku.");
-        }
+        return sum;
     }
 
-    //součet 2 zlomků
-    private static Fraction addFractions(Fraction f1, Fraction f2)
-    {
-        // vzorec pro součet zlomků: (a/b) + (c/d) = (a * d + b * c) / (b * d)
-        int numerator = f1.numerator * f2.denominator + f2.numerator * f1.denominator;
-        int denominator = f1.denominator * f2.denominator;
-        return new Fraction(numerator, denominator);
+    public String toString() {
+        return n + "/" + d;
     }
 
-    //zjednodušení zlomku pomocí GCD (aby to nepsalo např. 9/18 ale 1/2)
-    private void simplify()
-    {
-        int gcd = gcd(Math.abs(numerator), Math.abs(denominator));
-        numerator /= gcd;
-        denominator /= gcd;
-    }
-
-    //metoda pro výpočet GCD
-    private static int gcd(int a, int b)
-    {
-        while (b != 0) {
-            int temp = b;
-            b = a % b;
-            a = temp;
-        }
-        return a;
-    }
-
-    //napíše výsledek jako String
     @Override
-    public String toString()
-    {
-        return numerator + "/" + denominator;
+    public int intValue() {
+        return (int) (n / d);
+    }
+
+    @Override
+    public long longValue() {
+        return n / d;
+    }
+
+    @Override
+    public float floatValue() {
+        return (float) n / (float) d;
+    }
+
+    @Override
+    public double doubleValue() {
+        return (double) n / (double) d;
     }
 }
